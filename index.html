@@ -87,6 +87,7 @@
               pc.setRemoteDescription(new RTCSessionDescription(data.sdp), () => {
                   // When receiving an offer lets answer it
                   if (pc.remoteDescription.type === 'offer') {
+                    document.querySelectorAll(".remote_name").forEach(x=>x.textContent=data.senderId);
                     pc.createAnswer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage({'sdp': pc.localDescription}), onError)}).catch(onError);
                     pc.answered=true;
                   }
