@@ -104,9 +104,8 @@
             // Display your local video in #localVideo element
             localVideo.srcObject = stream;
 
-            stream.getTracks().forEach(track => pc.addTrack(track, _stream));
-
-            sendMessage("",{type:'join'});
+            // Add your stream to be sent to the conneting peer
+            stream.getTracks().forEach(track => pc.addTrack(track, stream));
         }, onError);
 
 
@@ -127,9 +126,6 @@
             const stream = event.streams[0];
             remoteVideo.srcObject = stream;
         };
-
-        // Add your stream to be sent to the conneting peer
-
 
   </script>
 </body>
