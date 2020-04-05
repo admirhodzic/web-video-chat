@@ -97,14 +97,14 @@
 
         var pc=new RTCPeerConnection(configuration);
 
-        var _stream;
         navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
         }).then(stream => {
             // Display your local video in #localVideo element
             localVideo.srcObject = stream;
-            _stream=stream;
+
+            stream.getTracks().forEach(track => pc.addTrack(track, _stream));
 
             sendMessage("",{type:'join'});
         }, onError);
@@ -129,7 +129,6 @@
         };
 
         // Add your stream to be sent to the conneting peer
-        _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
 
 
   </script>
