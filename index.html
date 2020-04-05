@@ -23,6 +23,7 @@
 <body>
   <div class="videopanel" id="videos">
     <div class="video"><span class="localname"></span><br><video  id="localVideo" autoplay muted></video></div>
+    <div class="video"><span class="remote_name"></span><br><video  id="remoteVideo" autoplay></video></div>
   </div>
 <!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/7.13.2/firebase-app.js"></script>
@@ -115,10 +116,9 @@
 
         var pc=new RTCPeerConnection(configuration);
 
-        videos.insertAdjacentHTML('beforeend','<div class="video">'+userid+'<br><video  id="remoteVideo" autoplay></video></div>');
-        pc.remoteVideo=document.getElementById('remoteVideo');
-
         function call(userid) {
+
+            document.querySelectorAll(".remote_name").forEach(x=>x.textContent=userid);
 
             // Add your stream to be sent to the conneting peer
             _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
@@ -142,7 +142,7 @@
             // When a remote stream arrives display it in the #remoteVideo element
             pc.ontrack = event => {
                 const stream = event.streams[0];
-                pc.remoteVideo.srcObject = stream;
+                remoteVideo.srcObject = stream;
             };
        
         }
