@@ -67,8 +67,8 @@
         function onSuccess() {};
         function onError(error) {console.error(error);};
 
-        function sendMessage(to, message) {
-            let x={ to:to, senderId: senderId, ...message };
+        function sendMessage(message) {
+            let x={ senderId: senderId, ...message };
             var msg = database.push(JSON.stringify(x));
             msg.remove();            
         }
@@ -113,12 +113,12 @@
         // message to the other peer through the signaling server
         pc.onicecandidate = event => {
             if (event.candidate) {
-                sendMessage(userid, {'candidate': event.candidate});
+                sendMessage({'candidate': event.candidate});
             }
         };
 
         pc.onnegotiationneeded = () => {
-            pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage(userid, {'sdp': pc.localDescription}), onError)}).catch(onError);
+            pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage({'sdp': pc.localDescription}), onError)}).catch(onError);
         }
 
         // When a remote stream arrives display it in the #remoteVideo element
