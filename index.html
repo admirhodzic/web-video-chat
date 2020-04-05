@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <style>
+    
+    .video {
+      display: inline-block;
+      vertical-align: top;
+      text-align: center;
+      width:45%;
+      margin: 1em;
+      box-sizing: border-box;
+      border-radius: 2px;
+      padding: 0.5em;
+      box-shadow: rgba(150, 180, 180, 0.2) 10px 12px 12px;
+    }
+    .video video {width:100%;}
+    .videopanel{display: inline-block;width: 100%;}
+  </style>
+</head>
+<body>
+  <div class="videopanel" id="videos">
+    <div class="video"><span class="localname"></span><br><video  id="localVideo" autoplay muted></video></div>
+  </div>
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.13.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.13.2/firebase-database.js"></script>
+
+<script>
+
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyB1q1h97X-22YvwRTHRlNiTClnT2e94ho0",
+    authDomain: "webchat-bc2ea.firebaseapp.com",
+    databaseURL: "https://webchat-bc2ea.firebaseio.com",
+    projectId: "webchat-bc2ea",
+    storageBucket: "webchat-bc2ea.appspot.com",
+    messagingSenderId: "354669630926",
+    appId: "1:354669630926:web:ae9e51dbf5f0d78d3e079f",
+    measurementId: "G-6NPKGP46S9"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  
+
+        var senderId=localStorage.getItem("senderId2");
+        if(senderId==null) {senderId=prompt("Your name");        localStorage.setItem("senderId2",senderId);}
+
+        document.querySelectorAll(".localname").forEach(x=>x.textContent=senderId);
+
+        if (!location.hash) {            location.hash = Math.floor(Math.random() * 0xFFFFFF).toString(16);        }
+        const roomHash = location.hash.substring(1);
+
+        var database = firebase.database().ref('/'+roomHash);
+
+        const configuration = {
+            iceServers: [{
+                urls: 'stun:stun.l.google.com:19302'
+            }]
+        };
+
+
+        function onSuccess() {};
+        function onError(error) {console.error(error);};
+
+        function sendMessage(to, message) {
+            let x={ to:to, senderId: senderId, ...message };
+            var msg = database.push(JSON.stringify(x));
+            msg.remove();            
+        }
+
+        database.on('child_added', function(_data){
+            var data=JSON.parse(_data.val());
+
+            if (data.senderId === senderId || (data.to!==senderId && data.to!=='')) {                return;            }
+
+            if(data.type==='join')             {
+              call(data.senderId);
+              return;
+            }
+
+            if (data.sdp) {
+              call(data.senderId);
+
+              pc.setRemoteDescription(new RTCSessionDescription(data.sdp), () => {
+                  // When receiving an offer lets answer it
+                  if (pc.remoteDescription.type === 'offer') {
+                    pc.createAnswer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage(data.senderId,{'sdp': pc.localDescription}), onError)}).catch(onError);
+                  }
+              }, onError);
+            } else if (data.candidate) {
+              // Add the new ICE candidate to our connections remote description
+              pc.addIceCandidate(
+                  new RTCIceCandidate(data.candidate), onSuccess, onError
+              );
+            }
+        });
+
+
+        var _stream;
+        navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true,
+        }).then(stream => {
+            // Display your local video in #localVideo element
+            localVideo.srcObject = stream;
+            _stream=stream;
+
+            sendMessage("",{type:'join'});
+
+        }, onError);
+
+        var pc=new RTCPeerConnection(configuration);
+
+        videos.insertAdjacentHTML('beforeend','<div class="video">'+userid+'<br><video  id="remoteVideo" autoplay></video></div>');
+        pc.remoteVideo=document.getElementById('remoteVideo');
+
+        function call(userid) {
+
+            // Add your stream to be sent to the conneting peer
+            _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
+
+            // 'onicecandidate' notifies us whenever an ICE agent needs to deliver a
+            // message to the other peer through the signaling server
+            pc.onicecandidate = event => {
+                if (event.candidate) {
+                sendMessage(userid, {'candidate': event.candidate});
+                }
+            };
+
+            // If user is offerer let the 'negotiationneeded' event create the offer
+            if (userid!=senderId) 
+            {
+                pc.onnegotiationneeded = () => {
+                  pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage(userid, {'sdp': pc.localDescription}), onError)}).catch(onError);
+                }
+            }
+
+            // When a remote stream arrives display it in the #remoteVideo element
+            pc.ontrack = event => {
+                const stream = event.streams[0];
+                pc.remoteVideo.srcObject = stream;
+            };
+       
+        }
+  </script>
+</body>
+</html>
