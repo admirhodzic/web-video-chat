@@ -87,9 +87,8 @@
               pc.setRemoteDescription(new RTCSessionDescription(data.sdp), () => {
                   // When receiving an offer lets answer it
                   if (pc.remoteDescription.type === 'offer') {
-                    
-
                     pc.createAnswer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage({'sdp': pc.localDescription}), onError)}).catch(onError);
+                    pc.answered=true;
                   }
               }, onError);
             } else if (data.candidate) {
@@ -101,6 +100,16 @@
         });
 
         var pc;
+        function setupPC(){
+            pc=new RTCPeerConnection(configuration);
+            // 'onicecandidate' notifies us whenever an ICE agent needs to deliver a
+            // message to the other peer through the signaling server
+            pc.onicecandidate = event => {if (event.candidate) sendMessage({'candidate': event.candidate});};
+            // When a remote stream arrives display it in the #remoteVideo element
+            pc.ontrack = event => {remoteVideo.srcObject = event.streams[0];};
+            // Add your stream to be sent to the conneting peer
+            localVideo.srcObject.getTracks().forEach(track => pc.addTrack(track, localVideo.srcObject));
+        }
 
         navigator.mediaDevices.getUserMedia({
             audio: true,
@@ -110,33 +119,15 @@
             localVideo.srcObject = stream;
 
             sendMessage({'joined':true});
+            setupPC();
+
         }, onError);
 
-
-
         function startCall(){
-            pc=new RTCPeerConnection(configuration);
-            // 'onicecandidate' notifies us whenever an ICE agent needs to deliver a
-            // message to the other peer through the signaling server
-            pc.onicecandidate = event => {
-                if (event.candidate) {
-                    sendMessage({'candidate': event.candidate});
-                }
-            };
-
-            pc.onnegotiationneeded = () => {
+            if(pc.answered===true){ //we need new pc
+                setupPC();
             }
-
-            // When a remote stream arrives display it in the #remoteVideo element
-            pc.ontrack = event => {
-                const stream = event.streams[0];
-                remoteVideo.srcObject = stream;
-            };
             pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage({'sdp': pc.localDescription}), onError)}).catch(onError);
-
-            // Add your stream to be sent to the conneting peer
-            localVideo.srcObject.getTracks().forEach(track => pc.addTrack(track, localVideo.srcObject));
-
         }
   </script>
 </body>
