@@ -24,7 +24,7 @@
     <h2>Send this page URL to your friend to start video chat</h2>
   <div class="videopanel" id="videos">
     <div class="video"><span class="localname"></span><br><video  id="localVideo" autoplay muted></video></div>
-    <div class="video"><span class="remote_name"></span><br><video  id="remoteVideo" autoplay></video><br/><button onclick="startCall()">Start call</button></div>
+    <div class="video"><span class="remote_name"></span><br><video  id="remoteVideo" autoplay></video></div>
   </div>
 <!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/7.13.2/firebase-app.js"></script>
@@ -75,6 +75,9 @@
             var data=JSON.parse(_data.val());
 
             if (data.senderId === senderId ) return;
+            
+            if(data.joined===true) return startCall(); //start calling
+            
 
             if (data.sdp) {
               pc.setRemoteDescription(new RTCSessionDescription(data.sdp), () => {
@@ -104,6 +107,8 @@
 
             // Add your stream to be sent to the conneting peer
             stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+            sendMessage({joined:true});
         }, onError);
 
 
