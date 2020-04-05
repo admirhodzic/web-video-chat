@@ -76,17 +76,14 @@
         database.on('child_added', function(_data){
             var data=JSON.parse(_data.val());
 
-            if (data.senderId === senderId || (data.to!==senderId && data.to!=='')) {                return;            }
-
-            if(data.type==='join')             {
-              call(data.senderId);
-              return;
-            }
+            if (data.senderId === senderId ) return;
 
             if (data.sdp) {
               pc.setRemoteDescription(new RTCSessionDescription(data.sdp), () => {
                   // When receiving an offer lets answer it
                   if (pc.remoteDescription.type === 'offer') {
+                    document.querySelectorAll(".remote_name").forEach(x=>x.textContent=data.senderId);
+
                     pc.createAnswer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage(data.senderId,{'sdp': pc.localDescription}), onError)}).catch(onError);
                   }
               }, onError);
@@ -113,34 +110,28 @@
         }, onError);
 
 
-        function call(userid) {
-
-            document.querySelectorAll(".remote_name").forEach(x=>x.textContent=userid);
-
-
-            // 'onicecandidate' notifies us whenever an ICE agent needs to deliver a
-            // message to the other peer through the signaling server
-            pc.onicecandidate = event => {
-                if (event.candidate) {
-                    sendMessage(userid, {'candidate': event.candidate});
-                }
-            };
-
-            pc.onnegotiationneeded = () => {
-                pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage(userid, {'sdp': pc.localDescription}), onError)}).catch(onError);
+        // 'onicecandidate' notifies us whenever an ICE agent needs to deliver a
+        // message to the other peer through the signaling server
+        pc.onicecandidate = event => {
+            if (event.candidate) {
+                sendMessage(userid, {'candidate': event.candidate});
             }
+        };
 
-            // When a remote stream arrives display it in the #remoteVideo element
-            pc.ontrack = event => {
-                const stream = event.streams[0];
-                remoteVideo.srcObject = stream;
-            };
-
-            // Add your stream to be sent to the conneting peer
-            _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
-
-
+        pc.onnegotiationneeded = () => {
+            pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage(userid, {'sdp': pc.localDescription}), onError)}).catch(onError);
         }
+
+        // When a remote stream arrives display it in the #remoteVideo element
+        pc.ontrack = event => {
+            const stream = event.streams[0];
+            remoteVideo.srcObject = stream;
+        };
+
+        // Add your stream to be sent to the conneting peer
+        _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
+
+
   </script>
 </body>
 </html>
