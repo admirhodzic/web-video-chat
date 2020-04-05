@@ -74,16 +74,20 @@
         database.on('child_added', function(_data){
             var data=JSON.parse(_data.val());
 
-            if (data.senderId === senderId ) return;
+            if(data.senderId === senderId ) return;
             
-            if(data.joined===true) return startCall(); //start calling
+            if(data.joined) {
+                document.querySelectorAll(".remote_name").forEach(x=>x.textContent=data.senderId);
+                startCall();
+                return;
+            } //start calling
             
 
             if (data.sdp) {
               pc.setRemoteDescription(new RTCSessionDescription(data.sdp), () => {
                   // When receiving an offer lets answer it
                   if (pc.remoteDescription.type === 'offer') {
-                    document.querySelectorAll(".remote_name").forEach(x=>x.textContent=data.senderId);
+                    
 
                     pc.createAnswer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage({'sdp': pc.localDescription}), onError)}).catch(onError);
                   }
