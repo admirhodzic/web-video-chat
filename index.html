@@ -84,8 +84,6 @@
             }
 
             if (data.sdp) {
-              call(data.senderId);
-
               pc.setRemoteDescription(new RTCSessionDescription(data.sdp), () => {
                   // When receiving an offer lets answer it
                   if (pc.remoteDescription.type === 'offer') {
@@ -112,10 +110,6 @@
             _stream=stream;
 
             sendMessage("",{type:'join'});
-
-            // Add your stream to be sent to the conneting peer
-            _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
-
         }, onError);
 
 
@@ -128,16 +122,12 @@
             // message to the other peer through the signaling server
             pc.onicecandidate = event => {
                 if (event.candidate) {
-                sendMessage(userid, {'candidate': event.candidate});
+                    sendMessage(userid, {'candidate': event.candidate});
                 }
             };
 
-            // If user is offerer let the 'negotiationneeded' event create the offer
-            if (userid!=senderId) 
-            {
-                pc.onnegotiationneeded = () => {
-                  pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage(userid, {'sdp': pc.localDescription}), onError)}).catch(onError);
-                }
+            pc.onnegotiationneeded = () => {
+                pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage(userid, {'sdp': pc.localDescription}), onError)}).catch(onError);
             }
 
             // When a remote stream arrives display it in the #remoteVideo element
@@ -145,7 +135,11 @@
                 const stream = event.streams[0];
                 remoteVideo.srcObject = stream;
             };
-       
+
+            // Add your stream to be sent to the conneting peer
+            _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
+
+
         }
   </script>
 </body>
