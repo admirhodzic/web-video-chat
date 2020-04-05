@@ -47,8 +47,8 @@
 
   
 
-        var senderId=localStorage.getItem("senderId2");
-        if(senderId==null) {senderId=prompt("Your name");        localStorage.setItem("senderId2",senderId);}
+        var senderId=localStorage.getItem("senderId3");
+        if(senderId===null) {senderId=prompt("Your name");        localStorage.setItem("senderId3",senderId);}
 
         document.querySelectorAll(".localname").forEach(x=>x.textContent=senderId);
 
@@ -100,6 +100,7 @@
             }
         });
 
+        var pc=new RTCPeerConnection(configuration);
 
         var _stream;
         navigator.mediaDevices.getUserMedia({
@@ -112,16 +113,16 @@
 
             sendMessage("",{type:'join'});
 
+            // Add your stream to be sent to the conneting peer
+            _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
+
         }, onError);
 
-        var pc=new RTCPeerConnection(configuration);
 
         function call(userid) {
 
             document.querySelectorAll(".remote_name").forEach(x=>x.textContent=userid);
 
-            // Add your stream to be sent to the conneting peer
-            _stream.getTracks().forEach(track => pc.addTrack(track, _stream));
 
             // 'onicecandidate' notifies us whenever an ICE agent needs to deliver a
             // message to the other peer through the signaling server
