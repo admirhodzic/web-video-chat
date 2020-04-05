@@ -21,9 +21,10 @@
   </style>
 </head>
 <body>
+    <h2>Send this page URL to your friend to start video chat</h2>
   <div class="videopanel" id="videos">
     <div class="video"><span class="localname"></span><br><video  id="localVideo" autoplay muted></video></div>
-    <div class="video"><span class="remote_name"></span><br><video  id="remoteVideo" autoplay></video></div>
+    <div class="video"><span class="remote_name"></span><br><video  id="remoteVideo" autoplay></video><br/><button onclick="startCall()">Start call</button></div>
   </div>
 <!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/7.13.2/firebase-app.js"></script>
@@ -31,24 +32,22 @@
 
 <script>
 
-  // Your web app's Firebase configuration
-  var firebaseConfig = {
-    apiKey: "AIzaSyB1q1h97X-22YvwRTHRlNiTClnT2e94ho0",
-    authDomain: "webchat-bc2ea.firebaseapp.com",
-    databaseURL: "https://webchat-bc2ea.firebaseio.com",
-    projectId: "webchat-bc2ea",
-    storageBucket: "webchat-bc2ea.appspot.com",
-    messagingSenderId: "354669630926",
-    appId: "1:354669630926:web:ae9e51dbf5f0d78d3e079f",
-    measurementId: "G-6NPKGP46S9"
-  };
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-
-  
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyB1q1h97X-22YvwRTHRlNiTClnT2e94ho0",
+            authDomain: "webchat-bc2ea.firebaseapp.com",
+            databaseURL: "https://webchat-bc2ea.firebaseio.com",
+            projectId: "webchat-bc2ea",
+            storageBucket: "webchat-bc2ea.appspot.com",
+            messagingSenderId: "354669630926",
+            appId: "1:354669630926:web:ae9e51dbf5f0d78d3e079f",
+            measurementId: "G-6NPKGP46S9"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
 
         var senderId=localStorage.getItem("senderId3");
-        if(senderId===null) {senderId=prompt("Your name");        localStorage.setItem("senderId3",senderId);}
+        if(senderId===null) {senderId=prompt("Your name"); localStorage.setItem("senderId3",senderId);}
 
         document.querySelectorAll(".localname").forEach(x=>x.textContent=senderId);
 
@@ -62,7 +61,6 @@
                 urls: 'stun:stun.l.google.com:19302'
             }]
         };
-
 
         function onSuccess() {};
         function onError(error) {console.error(error);};
@@ -118,7 +116,6 @@
         };
 
         pc.onnegotiationneeded = () => {
-            pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage({'sdp': pc.localDescription}), onError)}).catch(onError);
         }
 
         // When a remote stream arrives display it in the #remoteVideo element
@@ -127,6 +124,9 @@
             remoteVideo.srcObject = stream;
         };
 
+        function startCall(){
+            pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage({'sdp': pc.localDescription}), onError)}).catch(onError);
+        }
   </script>
 </body>
 </html>
