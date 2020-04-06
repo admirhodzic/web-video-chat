@@ -23,7 +23,10 @@
 <body>
     <h2>Send this page URL to your friend to start video chat</h2>
   <div class="videopanel" id="videos">
-    <div class="video"><span class="localname"></span><br><video  id="localVideo" autoplay muted></video></div>
+    <div class="video"><span class="localname"></span><br><video  id="localVideo" autoplay muted></video>
+    <br>
+    <button onclick="switchSource(false)">Camera</button> <button onclick="switchSource(true)">Screen</button>
+  </div>
     <div class="video"><span class="remote_name"></span><br><video  id="remoteVideo" autoplay></video></div>
   </div>
 <!-- The core Firebase JS SDK is always required and must be listed first -->
@@ -112,23 +115,39 @@
             localVideo.srcObject.getTracks().forEach(track => pc.addTrack(track, localVideo.srcObject));
         }
 
-        navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: true,
-        }).then(stream => {
-            // Display your local video in #localVideo element
-            localVideo.srcObject = stream;
-
-            sendMessage({'joined':true});
-            setupPC();
-
-        }, onError);
+        switchSource(false);
 
         function startCall(){
             if(pc.answered===true){ //we need new pc
                 setupPC();
             }
             pc.createOffer().then((desc)=>{pc.setLocalDescription(desc,() => sendMessage({'sdp': pc.localDescription}), onError)}).catch(onError);
+        }
+
+        function switchSource(isScreen){
+          if(isScreen)
+            navigator.mediaDevices.getDisplayMedia({
+                audio: true,
+                video: true,
+            }).then(stream => {
+                // Display your local video in #localVideo element
+                localVideo.srcObject = stream;
+                sendMessage({'joined':true});
+                setupPC();
+
+            }, onError);
+          else 
+            navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: true,
+            }).then(stream => {
+                // Display your local video in #localVideo element
+                localVideo.srcObject = stream;
+                sendMessage({'joined':true});
+                setupPC();
+
+            }, onError);
+
         }
   </script>
 </body>
