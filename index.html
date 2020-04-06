@@ -66,7 +66,7 @@
         };
 
         function onSuccess() {};
-        function onError(error) {console.error(error);};
+        function onError(error) {console.error(error); alert(JSON.stringify(error))};
 
         function sendMessage(message) {
             let x={ senderId: senderId, ...message };
